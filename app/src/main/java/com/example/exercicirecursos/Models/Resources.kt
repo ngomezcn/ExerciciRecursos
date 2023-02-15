@@ -1,49 +1,43 @@
 package com.example.exercicirecursos.Models
 
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.TextView
-import com.example.exercicirecursos.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-class Mineral(
+class Resources(
     val rawCount: TextView,
     val collectedCount: TextView,
     val generationTime: Long
 )
 {
-    val channel = Channel<String>(2);
+    val channel = Channel<String>(3);
     var counter = 0
     val collected  = mutableListOf<String>()
 
     suspend fun startMining()
     {
         while(true){
-            delay(generationTime)
-            counter ++;
-
             withContext(Dispatchers.Main){
                 rawCount.text = counter.toString()
             }
-
             channel.send("M")
+            delay(generationTime)
+            counter++
         }
     }
 
     suspend fun collect()
     {
-        while(!channel.isEmpty)
+        if(counter > 0)
         {
-            collected.add(channel.receive());
+            collected.add(channel.receive())
+            counter --
+            withContext(Dispatchers.Main) {
+                collectedCount.text = collected.size.toString()
+                rawCount.text = counter.toString()
+            }
         }
-        withContext(Dispatchers.Main) {
-            collectedCount.text = collected.size.toString()
-            rawCount.text = "0"
-        }
-        counter = 0;
     }
 }
